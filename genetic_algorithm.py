@@ -13,7 +13,7 @@ class PeptideSelectionGA:
 
     AMINOACIDS = ["A","R","N","D","C","Q","E","G","H","I","L","K","M","F","P","S","T","W","Y","V"]
  
-    def __init__(self, classifier, sequence_len, array_max, array_min, descriptors,fixed_residues):
+    def __init__(self, classifier, dengue_matrix, sequence_len, array_max, array_min, descriptors,fixed_residues):
 
         self.classifier = classifier
         self.descriptors = descriptors
@@ -28,6 +28,15 @@ class PeptideSelectionGA:
         self.fitness_in_generation = {}
         self.best_ind = []
 
+        self.dengue_matrix = dengue_matrix
+        sample_num = np.shape(self.dengue_matrix)[0]
+        variable_num = np.shape(self.dengue_matrix)[1]
+        self.threshold = (3*(variable_num+1))/ sample_num
+
+        data_frame_std_transpose = np.transpose(self.dengue_matrix)
+        self.inverse_matrix = np.linalg.inv(np.dot(data_frame_std_transpose,self.dengue_matrix))
+
+
     def evaluate(self,individual):
         np_ind = np.asarray(individual)
 
@@ -36,9 +45,18 @@ class PeptideSelectionGA:
             peptide_sequence += PeptideSelectionGA.AMINOACIDS[index]
   
         fitness_model = fit_obj.predictor_model(peptide_sequence, self.classifier, self.array_max, self.array_min, self.descriptors)       
-        fitness = fitness_model.predictor()
+        fitness, seq_value_array_std = fitness_model.predictor()
        
-        return fitness, #Single-element tuples should be avoided.  use comma.
+        return fitness*self.leverage(seq_value_array_std), #Single-element tuples should be avoided.  use comma.
+
+    def leverage(self, descriptor_row):
+        row_transpose = np.transpose(descriptor_row).astype(float)
+        leverage = np.dot(np.dot(descriptor_row, self.inverse_matrix),row_transpose)
+
+        if leverage < self.threshold:
+            return 1
+        else:
+            return 0.5
       
     def aa_index(self):
         return random.randint(0,19)

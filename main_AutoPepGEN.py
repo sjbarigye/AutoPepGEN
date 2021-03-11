@@ -14,6 +14,7 @@ class peptide_generator():
 	
     def __init__(self):
         self.classifier = load('dengue_svm_clf.joblib')
+        self.dengue_matrix = load('dengue_matrix.joblib')
         self.descriptors = ["DAWD720101_GM", "JURD980101_PM3","KHAG800101_PM2", "MCMT640101_P75", "MEEJ800101_R", "MEEJ800102_MIN", "PONP800104_R", "WOLS870102_I50", "YUTK870101_[MBAC(3)]M1"]
         self.array_max = [7.246, 3.58, 133., 42.53, 31.8, -0.1, 4.38, 7.88, 173.556]
         self.array_min = [1.872, -4.658, 19.114, 14.655, 0.7, -7.5, 0.31, 0.66, 0.]
@@ -43,7 +44,7 @@ class peptide_generator():
                 fixed_residues_ = fixed_residues
 
         for length in range(len_low,len_high+1):
-            fsga = genetic_algorithm.PeptideSelectionGA(self.classifier,length,array_max, array_min, self.descriptors, fixed_residues_) 
+            fsga = genetic_algorithm.PeptideSelectionGA(self.classifier, self.dengue_matrix, length, array_max, array_min, self.descriptors, fixed_residues_) 
             pop = fsga.generate(self.pop_size,self.cxprob,self.mutprob,self.ngen)
             fsga.out_put_best(pop,num_seq, output)
             

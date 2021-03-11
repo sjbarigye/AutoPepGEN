@@ -30,7 +30,7 @@ class predictor_model():
         #each label is mapped to the numerical index
         probability = self.prediction_model.predict_proba(np.reshape(seq_value_array_std,(-1,seq_value_array_std.size)))
        
-        return probability[0][1]
+        return probability[0][1], seq_value_array_std
 
 
     def standardize_min_man(self, desc_value_array, array_max, array_min):
